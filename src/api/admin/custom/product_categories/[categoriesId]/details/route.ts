@@ -9,7 +9,7 @@ const categoriesFieldsMetadataSchema = z.object({
         url: z.string().url(),
     }).optional(),
     description: z.string().optional(),
-})
+});
 
 /**
  * Handles a GET request to retrieve product category details, including metadata.
@@ -22,18 +22,15 @@ export async function GET(
     req: MedusaRequest,
     res: MedusaResponse,
 ): Promise<void> {
-    // Extract the categoriesId from the request parameters
-    const { categoryId} = req.params;
-    // Resolve the product service from the dependency injection container
+    const { categoriesId } = req.params;
     const productService = req.scope.resolve(Modules.PRODUCT);
-    // Retrieve the product category details
-    const category = await productService.retrieveProductCategory(categoryId,);
+    const category = await productService.retrieveProductCategory(categoriesId);
 
     const parsed = categoriesFieldsMetadataSchema.safeParse(category.metadata ?? {});
 
     res.json({
         image: parsed.success && parsed.data.image ? parsed.data.image : null,
-        description: parsed.success && parsed.data.description ? parsed.data.description : '',
+        description: parsed.success && parsed.data.description ? parsed.data.description : 'di mo gana yate',
     });
 }
 
@@ -42,14 +39,19 @@ export async function POST(
     res: MedusaResponse,
 ): Promise<void> {
     const { categoriesId } = req.params;
+
+    console.log('Request body:', req.body);
     const customFields = categoriesFieldsMetadataSchema.parse(req.body);
 
+    console.log('Parsed custom fields:', customFields);
     const productService = req.scope.resolve(Modules.PRODUCT);
     const category = await productService.retrieveProductCategory(
         categoriesId,
     );
 
-    const updatedCategories = await productService.updateProductCategories(
+    console.log('Original product category:', category.metadata);
+
+    const updatedCategory = await productService.updateProductCategories(
         categoriesId,
         {
             metadata: {
@@ -58,5 +60,7 @@ export async function POST(
             },
         },
     );
-    res.json(updatedCategories);
+
+    console.log('Updated product category:', updatedCategory.metadata);
+    res.json(updatedCategory);
 }

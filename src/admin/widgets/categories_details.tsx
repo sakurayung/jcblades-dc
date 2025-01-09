@@ -10,7 +10,7 @@ import { z } from "zod";
 import { ImageField, imageFieldSchema } from "../components/Form/ImageField";
 import { Form } from "../components/Form/Form";
 import { TextAreaField } from "../components/Form/TextAreaField";
-import { InputField } from "../components/Form/InputField";
+
 
 
 const detailsFormSchema = z.object({
@@ -38,8 +38,8 @@ const UpdateDetailsDrawer: React.FC<{
           <Form
             schema={detailsFormSchema}
             onSubmit={async (values) => {
-                console.log('Form value submitted:', values);
-              await fetch(`/api/admin/custom/categories/${id}/details`, {
+              console.log('Form value submitted:', values);
+              await fetch(`/admin/custom/product_categories/${id}/details`, {
                 method: "POST",
                 body: JSON.stringify(values),
                 headers: {
@@ -92,23 +92,27 @@ const UpdateDetailsDrawer: React.FC<{
   data,
 }: DetailWidgetProps<AdminProductCategory>) => {
   const [isEditModalOpen, setIsModalOpen] = React.useState(false);
-  const [details, setDetails] = React.useState<z.infer<
-    typeof detailsFormSchema
-  > | null>(null);
+  const [details, setDetails] = React.useState<z.infer<typeof detailsFormSchema> | null>(null);
 
   React.useEffect(() => {
-    fetch(`/api/admin/custom/categories/${data.id}/details`, {
+    console.log('Fetching details for category:', data.id);
+    fetch(`/admin/custom/product_categories/${data.id}/details`, {
       credentials: "include",
     })
-      .then((res) => res.json())
+      .then((res) => {
+        console.log('Response status:', res.status);
+        return res.json();
+      })
       .then((json) => {
-        console.log('Initials details fetched:', json);
+        console.log('Details fetched:', json);
         setDetails(json);
       })
       .catch((e) => {
-        console.error(e);
+        console.error('Error fetching details:', e);
       });
   }, [data.id]);
+
+  console.log('Current details state:', details);
 
   return (
     <Container className="divide-y p-0">
@@ -145,7 +149,7 @@ const UpdateDetailsDrawer: React.FC<{
           <Text>No details found</Text>
         ) : (
           <div className="flex flex-col gap-2">
-            {typeof details.image?.url === "string" && (
+            {typeof details.image?.url === 'string' && (
               <div>
                 <img
                   src={details.image.url}
@@ -157,7 +161,7 @@ const UpdateDetailsDrawer: React.FC<{
               <Text>{details.description}</Text>
             )}
 
-            {typeof details.image?.url !== "string" && !details.description && (
+            {typeof details.image?.url !== 'string' && !details.description && (
               <Text>No details available</Text>
             )}
           </div>

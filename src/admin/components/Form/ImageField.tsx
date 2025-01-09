@@ -25,7 +25,7 @@ export const imageFieldSchema = (params?: z.RawCreateParams) =>
   z.object(
     {
       id: z.string(),
-      url: z.string(),
+      url: z.string().url(),
     },
     params
   );
