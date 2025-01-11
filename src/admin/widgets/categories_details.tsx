@@ -2,20 +2,18 @@ import * as React from "react";
 import { defineWidgetConfig } from "@medusajs/admin-sdk";
 import {
   DetailWidgetProps,
-  AdminProductCategory,
+  ProductCategoryDTO,
 } from "@medusajs/framework/types";
 import { Container, Heading, Button, Drawer, Text } from "@medusajs/ui";
 import { PencilSquare } from "@medusajs/icons";
 import { z } from "zod";
 import { ImageField, imageFieldSchema } from "../components/Form/ImageField";
 import { Form } from "../components/Form/Form";
-import { TextAreaField } from "../components/Form/TextAreaField";
 
 
 
 const detailsFormSchema = z.object({
   image: imageFieldSchema().optional(),
-  description: z.string().optional(),
 });
 
 const UpdateDetailsDrawer: React.FC<{
@@ -39,7 +37,7 @@ const UpdateDetailsDrawer: React.FC<{
             schema={detailsFormSchema}
             onSubmit={async (values) => {
               console.log('Form value submitted:', values);
-              await fetch(`/admin/custom/product_categories/${id}/details`, {
+              await fetch(`/admin/custom/product-categories/${id}/details`, {
                 method: "POST",
                 body: JSON.stringify(values),
                 headers: {
@@ -62,7 +60,7 @@ const UpdateDetailsDrawer: React.FC<{
             }}
             defaultValues={initialValue}
             formProps={{
-              id: `edit-product_category-${id}-fields`,
+              id: `edit-product-category-${id}-fields`,
             }}
           >
             <div className="flex flex-col gap-y-4">
@@ -71,7 +69,6 @@ const UpdateDetailsDrawer: React.FC<{
                 label="Image"
                 dropzoneRootClassName="h-60"
               ></ImageField>
-              <TextAreaField name="description" label="Description" />
             </div>
           </Form>
         </Drawer.Body>
@@ -79,7 +76,7 @@ const UpdateDetailsDrawer: React.FC<{
           <Drawer.Close asChild>
             <Button variant="secondary">Cancel</Button>
           </Drawer.Close>
-          <Button type="submit" form={`edit-product_category-${id}-fields`}>
+          <Button type="submit" form={`edit-product-category-${id}-fields`}>
             Save
           </Button>
         </Drawer.Footer>
@@ -90,13 +87,13 @@ const UpdateDetailsDrawer: React.FC<{
 
  const CategoriesDetailsWidget = ({
   data,
-}: DetailWidgetProps<AdminProductCategory>) => {
+}: DetailWidgetProps<ProductCategoryDTO>) => {
   const [isEditModalOpen, setIsModalOpen] = React.useState(false);
   const [details, setDetails] = React.useState<z.infer<typeof detailsFormSchema> | null>(null);
 
   React.useEffect(() => {
     console.log('Fetching details for category:', data.id);
-    fetch(`/admin/custom/product_categories/${data.id}/details`, {
+    fetch(`/admin/custom/product-categories/${data.id}/details`, {
       credentials: "include",
     })
       .then((res) => {
@@ -117,12 +114,12 @@ const UpdateDetailsDrawer: React.FC<{
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
-        <Heading>Details</Heading>
+        <Heading>Category Thumbnail</Heading>
         {details !== null && (
           <UpdateDetailsDrawer
             isOpen={isEditModalOpen}
             onOpenChange={setIsModalOpen}
-            title="Update categories details"
+            title="Update Category Thumbnail"
             id={data.id}
             initialValue={details}
             onSave={(value) => {
@@ -156,13 +153,6 @@ const UpdateDetailsDrawer: React.FC<{
                   className="max-h-60 max-w-none w-auto"
                 />
               </div>
-            )}
-            {(details.description?.length ?? 0) > 0 && (
-              <Text>{details.description}</Text>
-            )}
-
-            {typeof details.image?.url !== 'string' && !details.description && (
-              <Text>No details available</Text>
             )}
           </div>
         )}
