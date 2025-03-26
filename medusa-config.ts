@@ -46,6 +46,8 @@ module.exports = defineConfig({
             options: {
               // provider options...
               apiKey: process.env.MANUAL_PAYMENT_KEY,
+              merchantId: process.env.MANUAL_PAYMENT_MERCHANT_ID,
+              sandbox: process.env.MANUAL_PAYMENT_SANDBOX === "true",
             }
           }
         ]
