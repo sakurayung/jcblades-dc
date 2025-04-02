@@ -9,7 +9,7 @@ import { PencilSquare } from "@medusajs/icons";
 import { z } from "zod";
 import { ImageField, imageFieldSchema } from "../components/Form/ImageField";
 import { Form } from "../components/Form/Form";
-
+import { withQueryClient } from "../components/QueryClientProvider";
 
 
 const detailsFormSchema = z.object({
@@ -25,6 +25,8 @@ const UpdateDetailsDrawer: React.FC<{
   initialValue: z.infer<typeof detailsFormSchema>;
   onSave: (values: z.infer<typeof detailsFormSchema>) => void;
 }> = ({ children, isOpen, onOpenChange, id, title, initialValue, onSave }) => {
+  console.log('UpdateDetailsDrawer props:', { isOpen, id, initialValue });
+
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <Drawer.Trigger asChild>{children}</Drawer.Trigger>
@@ -132,13 +134,15 @@ const UpdateDetailsDrawer: React.FC<{
               size="small"
               className="text-ui-fg-muted hover:text-ui-fg-subtle"
               onClick={(event) => {
+                console.log('Edit button clicked');
+                console.log('Event:', event);
                 event.preventDefault();
                 setIsModalOpen(true);
               }}
             >
               <PencilSquare /> Edit
             </Button>
-          </UpdateDetailsDrawer>
+          </UpdateDetailsDrawer>      
         )}
       </div>
       <div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
@@ -165,4 +169,4 @@ export const config = defineWidgetConfig({
     zone: 'product_category.details.before',
 });
 
-export default CategoriesDetailsWidget;
+export default withQueryClient(CategoriesDetailsWidget);
