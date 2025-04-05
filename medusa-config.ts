@@ -6,9 +6,9 @@ module.exports = defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     http: {
-      storeCors: process.env.STORE_CORS!,
-      adminCors: process.env.ADMIN_CORS!,
-      authCors: process.env.AUTH_CORS!,
+      storeCors: process.env.STORE_CORS || "http://localhost:8000",
+      adminCors: process.env.ADMIN_CORS || "http://localhost:9000",
+      authCors: process.env.AUTH_CORS || "http://localhost:8000,http://localhost:9000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
@@ -35,6 +35,26 @@ module.exports = defineConfig({
           },
         ],
       },
+    },
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/my-payment",
+            id: "manual-payment",
+            options: {
+              // provider options...
+              apiKey: process.env.MANUAL_PAYMENT_KEY,
+              merchantId: process.env.MANUAL_PAYMENT_MERCHANT_ID,
+              sandbox: process.env.MANUAL_PAYMENT_SANDBOX === "true",
+            }
+          }
+        ]
+      },
+    },
+    {
+      resolve: "./src/modules/receipt",
     },
   ],
 });
