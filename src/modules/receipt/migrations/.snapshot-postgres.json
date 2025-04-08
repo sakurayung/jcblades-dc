@@ -15,6 +15,24 @@
           "nullable": false,
           "mappedType": "text"
         },
+        "filename": {
+          "name": "filename",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
         "url": {
           "name": "url",
           "type": "text",
@@ -24,23 +42,14 @@
           "nullable": false,
           "mappedType": "text"
         },
-        "mimeType": {
-          "name": "mimeType",
-          "type": "text",
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
-          "mappedType": "text"
-        },
-        "order_id": {
-          "name": "order_id",
-          "type": "text",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "text"
+          "nullable": true,
+          "mappedType": "json"
         },
         "created_at": {
           "name": "created_at",
