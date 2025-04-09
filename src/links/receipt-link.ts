@@ -1,11 +1,8 @@
 import { defineLink } from "@medusajs/framework/utils";
-import receipt from "src/modules/receipt";
 import OrderModule from "@medusajs/medusa/order";
+import receipt from "src/modules/receipt";
 
-export default defineLink({
-    ...receipt.linkable.receiptImage,
-    field: "order_id",
-}, OrderModule.linkable.order, {
-    readOnly: true,
-}
+export default defineLink(
+    OrderModule.linkable.order,
+    receipt.linkable.receiptImage
 )
