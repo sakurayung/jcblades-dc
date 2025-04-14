@@ -25,12 +25,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       return res.status(400).json({ error: "No files were uploaded" });
     }
     //@ts-ignore
-   const orderId = req.query.order_id || req.body.order_id;
+   const cartId = req.query.cart_id || req.body.cart_id;
 
-   if (!orderId) {
+   if (!cartId) {
     throw new MedusaError(
       MedusaError.Types.INVALID_DATA,
-      "Order ID is required"
+      "Cart ID is required"
     );
   }
 
@@ -66,12 +66,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
             filename: correspondingFile?.filename || fileResult.id.split("/").pop(),
             mime_type: correspondingFile?.mimeType || "image/jpeg",
             url: fileResult.url,
-            metadata: { order_id: orderId}, 
+            metadata: { cart_id: cartId}, 
         })
 
         await link.create({
-          [Modules.ORDER]: {
-            order_id: orderId,
+          [Modules.CART]: {
+            cart_id: cartId,
           },
           [RECEIPT_IMAGE_MODULE]: {
             receipt_image_id: data.id
@@ -80,7 +80,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
         savedFileRecords.push({
           ...data,
-          order_id: orderId
+          cart_id: cartId,
         });
     }
     res.status(200).json({
