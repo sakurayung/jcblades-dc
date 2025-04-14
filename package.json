@@ -31,7 +31,7 @@
     "@mikro-orm/migrations": "6.4.3",
     "@mikro-orm/postgresql": "6.4.3",
     "@supabase/supabase-js": "^2.49.4",
-    "@tanstack/react-query": "^5.62.11",
+    "@tanstack/react-query": "^5.74.0",
     "awilix": "^8.0.1",
     "lodash": "^4.17.21",
     "medusa-file-s3": "^1.4.2",
