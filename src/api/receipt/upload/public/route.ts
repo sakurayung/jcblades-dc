@@ -35,11 +35,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
 
+    
+    /***HELL NAH BASE 64 YOU ALMOST CRASHED ME OUT... */
     // @ts-ignore
     const files = req.files.map((file) => ({
       filename: file.originalname,
       mimeType: file.mimetype,
-      content: file.buffer.toString("base64"),
+      content: file.buffer,
       access: "public",
     }));
 

@@ -3,6 +3,7 @@ import { DetailWidgetProps, AdminOrder } from "@medusajs/framework/types";
 import { Text, Container, Heading } from "@medusajs/ui";
 import { useQuery } from "@tanstack/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { sdk } from "../lib/sdk/sdk";
 
 /**Define type for API response */
@@ -11,15 +12,16 @@ type ReceiptImageItem = {
   cart_id: string;
   receipt_image: {
     filename: string;
+    url: string;
     id: string;
   };
   cart: {
     id: string;
     customer_id: string;
-    customer: {
+    customer?: {
       id: string;
     };
-    order: {
+    order?: {
       id: string;
     };
   };
@@ -35,26 +37,19 @@ const queryClient = new QueryClient();
 const ReceiptImageContent = ({ data: resource }: DetailWidgetProps<AdminOrder>) => {
   // Get the current order ID from props
   const orderId = resource?.id;
+  const [imgError, setImgError] = useState<Record<number, boolean>>({});
 
   const { data, isLoading } = useQuery<ReceiptImageResponse>({
     queryFn: () => sdk.client.fetch("/admin/receipt_image"),
     queryKey: ["receipt_images", orderId],
   });
 
-  console.log("Current order ID:", orderId);
   
-  // Get the receipt items from the response
+  /**Get the receipt images from the API response that fetches all receipt images
+   * 
+   */
   const receiptItems = data?.products || [];
   
-  // Check the first item to compare ID formats
-  if (receiptItems.length > 0 && orderId) {
-    console.log("Sample order ID from data:", receiptItems[0].cart?.order?.id);
-    console.log("Order ID format comparison:", {
-      "Resource ID": orderId,
-      "Length": orderId.length,
-      "Sample cart order ID": receiptItems[0].cart?.order?.id,
-    });
-  }
 
   // Filter the receipt images to only show those that match the current order ID
   // Use includes() for more flexible matching in case of format differences
@@ -65,25 +60,54 @@ const ReceiptImageContent = ({ data: resource }: DetailWidgetProps<AdminOrder>) 
   });
 
   console.log("Filtered receipt images count:", orderReceiptImages.length);
+  
+  // Debug URLs
+  orderReceiptImages.forEach((item, index) => {
+    console.log(`Receipt ${index} image URL:`, item.receipt_image?.url);
+  });
 
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
-        <Heading level="h2">Receipt Images</Heading>
+        <Heading level="h2">Receipt Image</Heading>
       </div>
       <div className="px-6 py-4">
         {isLoading ? (
           "Loading..."
         ) : orderReceiptImages.length > 0 ? (
           <div>
-            {orderReceiptImages.map((item, index) => (
-              <div key={index} className="mb-4 border p-3 rounded">
-                <Text className="font-medium">Receipt: {item.receipt_image?.filename || "N/A"}</Text>
-                <Text>Customer ID: {item.cart.customer_id || "N/A"}</Text>
-                <Text>Order ID: {item.cart.order?.id || "N/A"}</Text>
-                <Text>Cart ID: {item.cart_id || "N/A"}</Text>
-              </div>
-            ))}
+            {orderReceiptImages.map((item, index) => {
+              // Ensure URL is complete - prepend domain if necessary
+              const imageUrl = item.receipt_image?.url || "";
+              const isUrlComplete = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+              const fullImageUrl = isUrlComplete ? imageUrl : 
+                imageUrl.startsWith('/') ? `${window.location.origin}${imageUrl}` : `${window.location.origin}/${imageUrl}`;
+                
+              return (
+                <div key={index} className="mb-4 border p-3 rounded">
+                  {item.receipt_image?.url && !imgError[index] ? (
+                    <div className="mt-2">
+                      <img 
+                        src={fullImageUrl}
+                        alt={`Receipt ${item.receipt_image.filename || 'image'}`}
+                        className="max-w-full h-auto rounded border mt-2"
+                        style={{maxHeight: '400px', objectFit: 'contain'}}
+                        onError={() => {
+                          console.error(`Failed to load image from URL: ${fullImageUrl}`);
+                          setImgError(prev => ({...prev, [index]: true}));
+                        }}
+                      />
+                    </div>
+                  ) : imgError[index] ? (
+                    <div className="mt-2 p-4 bg-red-50 border border-red-200 rounded">
+                      <Text className="text-red-500">
+                        Failed to load image. URL: {fullImageUrl}
+                      </Text>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div>

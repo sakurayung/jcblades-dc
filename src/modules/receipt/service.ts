@@ -15,4 +15,5 @@ class ReceiptPaymentImage extends MedusaService({
     }
 }
 
+
 export default ReceiptPaymentImage;

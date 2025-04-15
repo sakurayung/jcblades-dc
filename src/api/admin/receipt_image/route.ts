@@ -6,7 +6,7 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
   const { data: receiptImage } = await query.graph({
     entity: "cart_receipt_image",
-    fields: ["receipt_image.filename", "cart.customer.id", "cart.order.id"],
+    fields: ["receipt_image.filename", "cart.customer.id", "cart.order.id", "receipt_image.url"],
   });
 
   res.json({ products: receiptImage });
