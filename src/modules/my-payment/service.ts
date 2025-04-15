@@ -22,7 +22,7 @@ type Options = {
 };
 
 class ManualPaymentProviderService extends AbstractPaymentProvider<Options> {
-  static identifier = "Manual Payment";
+  static identifier = "Gcash Payment";
   options_: Options;
 
   constructor(container: Record<string, any>, options: Options) {

@@ -5,6 +5,8 @@ import { promisify } from "util";
 import ReceiptPaymentImage from "src/modules/receipt/service";
 import { RECEIPT_IMAGE_MODULE } from "src/modules/receipt";
 import { container } from "@medusajs/framework";
+import { MedusaError, Modules } from "@medusajs/framework/utils";
+import { Link } from "@medusajs/framework/modules-sdk";
 
 /**
  * * Handles file uploads and processes them using the uploadFilesWorkflow. 
@@ -17,16 +19,29 @@ const uploadMiddleware = promisify(upload.array("files"));
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
     await uploadMiddleware(req as any, res as any);
+    
 
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: "No files were uploaded" });
     }
+    //@ts-ignore
+   const cartId = req.query.cart_id || req.body.cart_id;
 
+   if (!cartId) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      "Cart ID is required"
+    );
+  }
+
+
+    
+    /***HELL NAH BASE 64 YOU ALMOST CRASHED ME OUT... */
     // @ts-ignore
     const files = req.files.map((file) => ({
       filename: file.originalname,
       mimeType: file.mimetype,
-      content: file.buffer.toString("base64"),
+      content: file.buffer,
       access: "public",
     }));
 
@@ -34,7 +49,11 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       input: { files },
     });
 
+
     const imageRepository: ReceiptPaymentImage = container.resolve(RECEIPT_IMAGE_MODULE)
+    const link = container.resolve("link") as Link;
+
+
 
     const savedFileRecords = []
     for (const fileResult of result) {
@@ -49,11 +68,27 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
             filename: correspondingFile?.filename || fileResult.id.split("/").pop(),
             mime_type: correspondingFile?.mimeType || "image/jpeg",
             url: fileResult.url,
-            metadata: {}, 
+            metadata: { cart_id: cartId}, 
         })
-        savedFileRecords.push(data)
+
+        await link.create({
+          [Modules.CART]: {
+            cart_id: cartId,
+          },
+          [RECEIPT_IMAGE_MODULE]: {
+            receipt_image_id: data.id
+          },
+        });
+
+        savedFileRecords.push({
+          ...data,
+          cart_id: cartId,
+        });
     }
-    res.status(200).json(result);
+    res.status(200).json({
+      files: result,
+      receipt_images: savedFileRecords
+    });
   } catch (error) {
     console.error("File upload error:", error);
     res.status(500).json({ error: "File upload failed" });
