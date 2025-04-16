@@ -36,6 +36,7 @@
     "lodash": "^4.17.21",
     "medusa-file-s3": "^1.4.2",
     "medusa-payment-manual": "^1.0.25",
+    "medusa-payment-paypal": "^6.0.5",
     "multer": "^1.4.5-lts.2",
     "node-fetch": "^3.3.2",
     "pg": "^8.13.0",
