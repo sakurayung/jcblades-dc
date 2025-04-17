@@ -1,4 +1,5 @@
 import { loadEnv, defineConfig, Modules } from '@medusajs/framework/utils';
+import { resolve } from 'path';
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd());
 
@@ -54,6 +55,23 @@ module.exports = defineConfig({
           },
         ],
       },
+    },
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/paypal",
+            id: "paypal",
+            options: {
+              sandbox: process.env.PAYPAL_SANDBOX,
+              clientId: process.env.PAYPAL_CLIENT_ID,
+              clientSecret: process.env.PAYPAL_CLIENT_SECRET,
+              webhookId: process.env.PAYPAL_AUTH_WEBHOOK_ID
+            }
+          }
+        ]
+      }
     },
     {
       resolve: "@medusajs/medusa/file",

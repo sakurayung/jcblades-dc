@@ -9,7 +9,7 @@ import {
 const MAX_ATTEMPTS = 2;
 
 export class PaypalHttpClient {
-  protected readonly baseUrl_: string = PaypalEnvironmentPaths.LIVE;
+  protected readonly baseUrl_: string = PaypalEnvironmentPaths.SANDBOX;
   protected readonly httpClient_: AxiosInstance;
   protected readonly options_: PaypalSdkOptions;
   protected readonly logger_?: Logger;
@@ -20,8 +20,8 @@ export class PaypalHttpClient {
 
     this.logger_ = options.logger;
 
-    if (options.sandbox) {
-      this.baseUrl_ = PaypalEnvironmentPaths.SANDBOX;
+    if (!options.sandbox) {
+      this.baseUrl_ = PaypalEnvironmentPaths.LIVE;
     }
 
     const axiosInstance = axios.create({
