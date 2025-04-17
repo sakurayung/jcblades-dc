@@ -26,7 +26,6 @@ module.exports = defineConfig({
   modules: [
     {
       resolve: "@medusajs/medusa/payment",
-      key: Modules.PAYMENT,
       options: {
         providers: [
           {
