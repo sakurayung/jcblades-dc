@@ -9,7 +9,7 @@ module.exports = defineConfig({
       return {
         server: {
           allowedHosts: [
-            "473a-143-44-184-88.ngrok-free.app",]
+            "7fb9-143-44-184-88.ngrok-free.app",]
         }
       }
     }

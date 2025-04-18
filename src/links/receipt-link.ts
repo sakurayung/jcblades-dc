@@ -3,6 +3,6 @@ import CartModule from "@medusajs/medusa/cart";
 import receipt from "src/modules/receipt";
 
 export default defineLink(
-    CartModule.linkable.cart,
     receipt.linkable.receiptImage,
+    CartModule.linkable.cart
 )
