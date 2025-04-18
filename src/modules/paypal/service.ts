@@ -31,12 +31,6 @@ import {
   WebhookActionResult,
 } from "@medusajs/types";
 
-import {
-  Client,
-  Environment,
-  LogLevel,
-  PaymentsProcessorResponse,
-} from "@paypal/paypal-server-sdk";
 import { CreateOrder, PaypalSdk } from "./core";
 import { Logger } from "@medusajs/medusa";
 import { container } from "@medusajs/framework";
@@ -102,7 +96,11 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
       ? "CAPTURE"
       : "AUTHORIZE";
       
-    // Prepare complete order payload according to PayPal API documentation
+  
+    /**
+     * Prepare complete order payload according to PayPal API documentation
+     * Remove the application-context since it is deprecated so this is okay now resulting into 200 code response.
+     */
     const orderPayload: CreateOrder = {
       intent,
       purchase_units: [
@@ -120,7 +118,6 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
       ],
     };
 
-    
 
     session_data = await this.paypal_.createOrder(orderPayload);
 
