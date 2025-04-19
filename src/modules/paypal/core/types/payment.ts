@@ -21,6 +21,7 @@ export interface CapturesRefundResponse {
 }
 
 export interface CaptureAuthorizedPayment {
+  authorization_id?: string
   amount?: MoneyAmount
   final_capture?: boolean
   invoice_id?: string

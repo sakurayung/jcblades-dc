@@ -20,8 +20,8 @@ export class PaypalHttpClient {
 
     this.logger_ = options.logger;
 
-    if (!options.sandbox) {
-      this.baseUrl_ = PaypalEnvironmentPaths.LIVE;
+    if (options.sandbox) {
+      this.baseUrl_ = PaypalEnvironmentPaths.SANDBOX;
     }
 
     const axiosInstance = axios.create({

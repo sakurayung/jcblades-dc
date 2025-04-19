@@ -10,8 +10,8 @@ export const PaypalEnvironmentPaths = {
     CREATE_ORDER: "/v2/checkout/orders",
     AUTHORIZE_ORDER: "/v2/checkout/orders/{id}/authorize",
     CAPTURE_REFUND: "/v2/payments/captures/{id}/refund",
-    AUTHORIZATION_GET: "/v2/payments/authorizations/{id}",
-    AUTHORIZATION_CAPTURE: "/v2/payments/authorizations/{id}/capture",
-    AUTHORIZATION_VOID: "/v2/payments/authorizations/{id}/void",
+    AUTHORIZATION_GET: "/v2/payments/authorizations/{authorization_id}",
+    AUTHORIZATION_CAPTURE: "/v2/payments/authorizations/{authorization_id}/capture",
+    AUTHORIZATION_VOID: "/v2/payments/authorizations/{authorization_id}/void",
     VERIFY_WEBHOOK_SIGNATURE: "/v1/notifications/verify-webhook-signature",
   }

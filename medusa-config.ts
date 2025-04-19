@@ -9,7 +9,7 @@ module.exports = defineConfig({
       return {
         server: {
           allowedHosts: [
-            "7fb9-143-44-184-88.ngrok-free.app",]
+            "ef05-143-44-184-88.ngrok-free.app",]
         }
       }
     }
@@ -18,7 +18,7 @@ module.exports = defineConfig({
     databaseUrl: process.env.DATABASE_URL,
     http: {
       storeCors: process.env.STORE_CORS || "http://localhost:8000",
-      adminCors: process.env.ADMIN_CORS || "https://25c4-143-44-184-88.ngrok-free.app/",
+      adminCors: process.env.ADMIN_CORS || "https://ef05-143-44-184-88.ngrok-free.app",
       authCors: process.env.AUTH_CORS || "http://localhost:8000,http://localhost:9000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",

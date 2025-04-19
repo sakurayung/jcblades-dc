@@ -10,8 +10,9 @@ export interface PaypalOptions {
   }
   
   export type PaypalOrder = {
+    links: any
     status: keyof typeof PaypalOrderStatus
-    invoice_id: string
+    invoice_id?: string
   }
   
   export type PurchaseUnits = {

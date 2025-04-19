@@ -63,97 +63,110 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
   }
 
   async getPaymentStatus(
-    GetPaymentStatusInput: Record<string, unknown>
+    input: GetPaymentStatusInput
   ): Promise<GetPaymentStatusOutput> {
-    const order = (await this.retrievePayment(
-      GetPaymentStatusInput
-    )) as PaypalOrder;
+    const { data } = input;
+    const status = PaymentSessionStatus;
+
+    const order = (await this.retrievePayment(data)) as PaypalOrder;
 
     switch (order.status) {
       case PaypalOrderStatus.CREATED:
-        return { status: PaymentSessionStatus.PENDING };
-      case PaypalOrderStatus.SAVED:
+        return {
+          status: status.PENDING,
+          data: order,
+        };
       case PaypalOrderStatus.APPROVED:
-      case PaypalOrderStatus.PAYER_ACTION_REQUIRED:
-        return { status: PaymentSessionStatus.REQUIRES_MORE };
-      case PaypalOrderStatus.VOIDED:
-        return { status: PaymentSessionStatus.CANCELED };
+        return {
+          status: status.REQUIRES_MORE,
+          data: order,
+        };
       case PaypalOrderStatus.COMPLETED:
-        return { status: PaymentSessionStatus.AUTHORIZED };
+        return {
+          status: status.AUTHORIZED,
+        };
+      case PaypalOrderStatus.VOIDED:
+        return {
+          status: status.CANCELED,
+        };
       default:
-        return { status: PaymentSessionStatus.PENDING };
+        return {
+          status: status.PENDING,
+        };
     }
   }
 
   async initiatePayment(
-  input: InitiatePaymentInput
-): Promise<InitiatePaymentOutput> {
-  const { amount, currency_code, context: customerDetails } = input;
+    input: InitiatePaymentInput
+  ): Promise<InitiatePaymentOutput> {
+    const { amount, currency_code, context } = input;
 
-  let session_data;
-  try {
-    const intent: CreateOrder["intent"] = this.options_.capture
-      ? "CAPTURE"
-      : "AUTHORIZE";
-      
-  
-    /**
-     * Prepare complete order payload according to PayPal API documentation
-     * Remove the application-context since it is deprecated so this is okay now resulting into 200 code response.
-     */
-    const orderPayload: CreateOrder = {
-      intent,
-      purchase_units: [
-        {
-          reference_id: "default",
-          custom_id: customerDetails?.customer?.id?.toString(),
-          amount: {
-            currency_code: currency_code.toUpperCase(),
-            value: roundToTwo(
-              humanizeAmount(Number(amount), currency_code),
-              currency_code
-            )
-          }
-        }
-      ],
-    };
+    let session_data;
+    try {
+      const intent: CreateOrder["intent"] = this.options_.capture
+        ? "CAPTURE"
+        : "AUTHORIZE";
 
+      /**
+       * Prepare complete order payload according to PayPal API documentation
+       * Remove the application-context since it is deprecated so this is okay now resulting into 200 code response.
+       */
+      const orderPayload: CreateOrder = {
+        intent,
+        purchase_units: [
+          {
+            reference_id: "default",
+            custom_id: context?.idempotency_key?.toString(),
+            amount: {
+              currency_code: currency_code.toUpperCase(),
+              value: roundToTwo(
+                //@ts-ignore
+                humanizeAmount(amount, currency_code),
+                currency_code
+              ),
+            },
+          },
+        ],
+      };
 
-    session_data = await this.paypal_.createOrder(orderPayload);
+      session_data = await this.paypal_.createOrder(orderPayload);
 
-    this.logger_?.info(`PayPal payment initiated: ${session_data.id}`);
-    
-    return {
-      id: session_data.id,
-      data: session_data,
-    };
-  } catch (e) {
-    this.logger_?.error(`Error initiating PayPal payment: ${e.message}`);
-    return this.buildError("An error occurred in initiating payment", e);
+      if (!session_data) {
+        throw new Error("Failed to create PayPal order: No response received");
+      }
+
+      if (!session_data.id) {
+        throw new Error("Invalid PayPal order response: Missing order ID");
+      }
+
+      this.logger_?.info(`PayPal payment initiated: ${session_data.id}`);
+
+      return {
+        id: session_data.id,
+        data: session_data,
+      };
+    } catch (e) {
+      this.logger_?.error(`Error initiating PayPal payment: ${e.message}`);
+      return this.buildError("An error occurred in initiating payment", e);
+    }
   }
-}
 
   async authorizePayment(
     input: AuthorizePaymentInput
-  ): Promise<AuthorizePaymentOutput> {
+  ): Promise<
+    | AuthorizePaymentOutput
+    | {
+        status: PaymentSessionStatus
+      }
+  > {
     try {
-      const paymentData = input.data || {};
-
-      const status = await this.getPaymentStatus({
-        data: paymentData,
-      });
-
-      const order = (await this.retrievePayment(paymentData)) as PaypalOrder;
-
-      return {
-        status: status.status,
-        data: order,
-      };
+      const stat = await this.getPaymentStatus({ data: input.data })
+      const order = (await this.retrievePayment(
+        input.data
+      )) as PaypalOrder
+      return { data: order, status: stat.status }
     } catch (error) {
-      throw new MedusaError(
-        MedusaError.Types.UNEXPECTED_STATE,
-        `Error authorizing PayPal payment: ${error.message}`
-      );
+      return this.buildError("An error occurred in authorizePayment", error)
     }
   }
 
@@ -282,11 +295,10 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
    * @param RetrievePaymentInput
    * @returns
    */
-  async retrievePayment(
-    input: RetrievePaymentInput
-  ): Promise<RetrievePaymentOutput> {
-    const paymentData = input.data || {};
-
+  async retrievePayment({
+    data,
+  }: RetrievePaymentInput): Promise<RetrievePaymentOutput> {
+    const paymentData = data || {};
     try {
       const id = paymentData.id as string;
       return (await this.paypal_.getOrder(
@@ -393,28 +405,17 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
   ): Promise<WebhookActionResult> {
     const headers = payload.headers as Record<string, string>;
     const verifyData = {
-      auth_algo: headers["paypal-auth-algo"],
-      cert_url: headers["paypal-cert-url"],
-      transmission_id: headers["paypal-transmission-id"],
-      transmission_sig: headers["paypal-transmission-sig"],
-      transmission_time: headers["paypal-transmission-time"],
+      auth_algo: headers["PAYPAL-AUTH-ALGO"],
+      cert_url: headers["PAYPAL-CERT-URL"],
+      transmission_id: headers["PAYPAL-TRANSMISSION-ID"],
+      transmission_sig: headers["PAYPAL-TRANSMISSION-SIG"],
+      transmission_time: headers["PAYPAL-TRANSMISSION-TIME"],
       webhook_id: this.options_.authWebhookId,
       webhook_event: payload.data,
     };
 
-    const isVerified = await this.paypal_.verifyWebhook(verifyData);
 
-    if (!isVerified) {
-      return {
-        action: "failed",
-        data: {
-          //@ts-ignore
-          message: "Webhook verification failed",
-        },
-      };
-    }
-
-    const { data, rawData }  = payload
+    const { data, rawData } = payload;
     try {
       switch (data.event_type) {
         case PaypalOrderStatus.CREATED:
@@ -424,17 +425,14 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
         case PaypalOrderStatus.APPROVED:
           return {
             action: "authorized",
-            
           };
         case PaypalOrderStatus.COMPLETED:
           return {
             action: "captured",
-            
           };
         case PaypalOrderStatus.VOIDED:
           return {
             action: "canceled",
-            
           };
         default:
           return {
@@ -450,6 +448,13 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
         },
       };
     }
-  } 
+  }
+
+  async verifyWebhook(data) {
+    return await this.paypal_.verifyWebhook({
+      webhook_id: this.options_.authWebhookId || this.options_.authWebhookId,
+      ...data,
+    })
+  }
 }
 export default PayPalPaymentProviderService;
