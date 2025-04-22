@@ -8,6 +8,7 @@ import {
   ProviderSendNotificationResultsDTO,
 } from "@medusajs/framework/types";
 import { Resend, CreateEmailOptions } from "resend";
+import { orderPlacedEmail } from "./emails/order-placed";
 
 type ResendOptions = {
   api_key: string;
@@ -33,7 +34,7 @@ enum Templates {
 }
 const templates: { [key in Templates]?: (props: unknown) => React.ReactNode } =
   {
-    // TODO: ADD TEMPLATES, REACT-EMAIL
+    [Templates.ORDER_PLACED]: orderPlacedEmail,
   };
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {
