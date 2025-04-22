@@ -100,7 +100,7 @@ export class PaypalSdk {
     data?: CaptureAuthorizedPayment
   ): Promise<CapturesAuthorizationResponse> {
     const url = PaypalApiPath.AUTHORIZATION_CAPTURE.replace(
-      "{id}",
+      "{authorization_id}",
       authorizationId
     );
 
@@ -115,7 +115,7 @@ export class PaypalSdk {
     authorizationId: string
   ): Promise<GetAuthorizationPaymentResponse> {
     const url = PaypalApiPath.AUTHORIZATION_GET.replace(
-      "{id}",
+      "{authorization_id}",
       authorizationId
     );
 
