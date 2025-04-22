@@ -116,7 +116,7 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
         purchase_units: [
           {
             reference_id: "default",
-            custom_id: context?.idempotency_key?.toString(),
+            custom_id: context?.idempotency_key.toString(),
             amount: {
               currency_code: currency_code.toUpperCase(),
               value: roundToTwo(
@@ -153,20 +153,22 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
 
   async authorizePayment(
     input: AuthorizePaymentInput
-  ): Promise<
-    | AuthorizePaymentOutput
-    | {
-        status: PaymentSessionStatus
-      }
-  > {
+  ): Promise<AuthorizePaymentOutput> {
     try {
-      const stat = await this.getPaymentStatus({ data: input.data })
-      const order = (await this.retrievePayment(
-        input.data
-      )) as PaypalOrder
-      return { data: order, status: stat.status }
+      const stat = await this.getPaymentStatus({
+        data: { id: input.data?.id },
+      });
+      /**
+       * Pass an object with the id property instead of just the id string
+       */
+      //@ts-ignore
+      const order = (await this.retrievePayment({ id: input.data.id })) as PaypalOrder;
+      return {
+        data: order as unknown as Record<string, unknown>,
+        status: stat.status,
+      };
     } catch (error) {
-      return this.buildError("An error occurred in authorizePayment", error)
+      return this.buildError("An error occurred in authorizePayment", error);
     }
   }
 
@@ -295,17 +297,64 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
    * @param RetrievePaymentInput
    * @returns
    */
-  async retrievePayment({
-    data,
-  }: RetrievePaymentInput): Promise<RetrievePaymentOutput> {
-    const paymentData = data || {};
+  async retrievePayment(
+    input: RetrievePaymentInput
+  ): Promise<RetrievePaymentOutput> {
     try {
-      const id = paymentData.id as string;
-      return (await this.paypal_.getOrder(
-        id
-      )) as unknown as RetrievePaymentOutput;
-    } catch (e) {
-      return this.buildError("An error occured in retrieving payment", e);
+      console.log("Payment input data:", JSON.stringify(input, null, 2));
+
+      // Check the structure more deeply
+      console.log("Input type:", typeof input);
+      console.log("Input has data property:", input.hasOwnProperty("data"));
+
+      if (input.data) {
+        console.log("Data property type:", typeof input.data);
+        console.log("Data property keys:", Object.keys(input.data));
+        console.log("Data has id property:", input.data.hasOwnProperty("id"));
+      }
+
+      // Log direct properties
+      console.log("Input has id property:", input.hasOwnProperty("id"));
+
+      // Attempt to access ID through different paths
+      let externalId = null;
+
+      if (input.data && input.data.id) {
+        externalId = input.data.id;
+        console.log("Found ID in input.data.id:", externalId);
+      } else if (input.id) {
+        externalId = input.id;
+        console.log("Found ID in input.id:", externalId);
+      }
+
+      console.log("Final External ID:", externalId);
+
+      if (!externalId) {
+        throw new MedusaError(
+          MedusaError.Types.INVALID_DATA,
+          "Missing PayPal order ID"
+        );
+      }
+
+      // Get the order from PayPal
+      const order = await this.paypal_.getOrder(externalId);
+      console.log("PayPal order response:", JSON.stringify(order, null, 2));
+
+      if (!order) {
+        console.log("Order is undefined!");
+      } else {
+        console.log("Order properties:", Object.keys(order));
+      }
+
+      // Return the order data
+      const result = await this.retrieveOrderFromAuth(order);
+      return result as unknown as RetrievePaymentOutput;
+    } catch (error) {
+      // Throw the error instead of returning it
+      throw new MedusaError(
+        MedusaError.Types.UNEXPECTED_STATE,
+        `Error retrieving PayPal payment: ${error.message}`
+      );
     }
   }
 
@@ -358,16 +407,48 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
     }
   }
 
-  async retrieveOrderFromAuth(authorization: any) {
-    const link = authorization.links.find((l: any) => l.rel === "up");
-    const parts = link.href.split("/");
-    const orderId = parts[parts.length - 1];
+  async retrieveOrderFromAuth(order: any) {
+    try {
+      console.log(
+        "Order in retrieveOrderFromAuth:",
+        JSON.stringify(order, null, 2)
+      );
 
-    if (!orderId) {
-      return null;
+      // Find the authorization inside the purchase units
+      let authorization = null;
+
+      if (
+        order?.purchase_units &&
+        order.purchase_units[0]?.payments?.authorizations &&
+        order.purchase_units[0].payments.authorizations.length > 0
+      ) {
+        authorization = order.purchase_units[0].payments.authorizations[0];
+      }
+
+      if (!authorization || !authorization.links) {
+        console.log("No authorization or links found");
+        return order; // Return the original order if no authorization found
+      }
+
+      const link = authorization.links.find((l: any) => l.rel === "up");
+
+      if (!link || !link.href) {
+        console.log("No 'up' link found in authorization");
+        return order; // Return the original order if no link found
+      }
+
+      const parts = link.href.split("/");
+      const orderId = parts[parts.length - 1];
+
+      if (!orderId) {
+        return order; // Return the original order if no ID found
+      }
+
+      return await this.paypal_.getOrder(orderId);
+    } catch (error) {
+      console.log("Error in retrieveOrderFromAuth:", error);
+      throw error;
     }
-
-    return await this.paypal_.getOrder(orderId);
   }
 
   async retrieveAuthorization(id: any) {
@@ -403,58 +484,53 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
   async getWebhookActionAndData(
     payload: ProviderWebhookPayload["payload"]
   ): Promise<WebhookActionResult> {
-    const headers = payload.headers as Record<string, string>;
-    const verifyData = {
-      auth_algo: headers["PAYPAL-AUTH-ALGO"],
-      cert_url: headers["PAYPAL-CERT-URL"],
-      transmission_id: headers["PAYPAL-TRANSMISSION-ID"],
-      transmission_sig: headers["PAYPAL-TRANSMISSION-SIG"],
-      transmission_time: headers["PAYPAL-TRANSMISSION-TIME"],
-      webhook_id: this.options_.authWebhookId,
-      webhook_event: payload.data,
-    };
-
-
-    const { data, rawData } = payload;
     try {
-      switch (data.event_type) {
-        case PaypalOrderStatus.CREATED:
-          return {
-            action: "pending",
-          };
-        case PaypalOrderStatus.APPROVED:
-          return {
-            action: "authorized",
-          };
-        case PaypalOrderStatus.COMPLETED:
-          return {
-            action: "captured",
-          };
-        case PaypalOrderStatus.VOIDED:
-          return {
-            action: "canceled",
-          };
-        default:
-          return {
-            action: "pending",
-          };
+      await this.verifyWebhook(payload);
+      const { data } = payload;
+      
+      this.logger_?.error(`PayPal webhook received: ${data.message}`);
+
+      if (!data?.event_type) {
+        throw new MedusaError(
+          MedusaError.Types.INVALID_DATA,
+          "Missing event type in webhook payload"
+        );
       }
-    } catch (e) {
+
+      //@ts-ignore
+      const eventTypeToAction: Record<PaypalOrderStatus, WebhookActionResult> =
+        {
+          [PaypalOrderStatus.CREATED]: { action: "pending" },
+          [PaypalOrderStatus.APPROVED]: { action: "authorized" },
+          [PaypalOrderStatus.COMPLETED]: { action: "captured" },
+          [PaypalOrderStatus.VOIDED]: { action: "canceled" },
+        };
+      //@ts-ignore
+      return (
+        eventTypeToAction[data.event_type as PaypalOrderStatus] || {
+          action: "pending",
+        }
+      );
+    } catch (error) {
+      this.logger_?.error(`PayPal webhook error: ${error.message}`);
       return {
         action: "failed",
-        data: {
-          //@ts-ignore
-          message: "Webhook verification failed",
-        },
+        // The data property is removed as it contained invalid properties for WebhookActionData
       };
     }
   }
 
-  async verifyWebhook(data) {
+  async verifyWebhook(data: ProviderWebhookPayload["payload"]) {
     return await this.paypal_.verifyWebhook({
-      webhook_id: this.options_.authWebhookId || this.options_.authWebhookId,
+      webhook_id: this.options_.authWebhookId,
       ...data,
-    })
+      auth_algo: data.headers?.["paypal-auth-algo"] as string,
+      cert_url: data.headers?.["paypal-cert-url"] as string,
+      transmission_id: data.headers?.["paypal-transmission-id"] as string,
+      transmission_sig: data.headers?.["paypal-transmission-sig"] as string,
+      transmission_time: data.headers?.["paypal-transmission-time"] as string,
+      webhook_event: data.data,
+    });
   }
 }
 export default PayPalPaymentProviderService;
