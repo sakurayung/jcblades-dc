@@ -1,5 +1,4 @@
-import { loadEnv, defineConfig, Modules } from "@medusajs/framework/utils";
-import { resolve } from "path";
+import { loadEnv, defineConfig } from "@medusajs/framework/utils";
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
@@ -18,8 +17,7 @@ module.exports = defineConfig({
     redisUrl: process.env.REDIS_URL,
     http: {
       storeCors: process.env.STORE_CORS || "http://localhost:8000",
-      adminCors:
-        process.env.ADMIN_CORS || "https://544b-143-44-184-28.ngrok-free.app",
+      adminCors: process.env.ADMIN_CORS || "http://localhost:9000",
       authCors:
         process.env.AUTH_CORS || "http://localhost:8000,http://localhost:9000",
       jwtSecret: process.env.JWT_SECRET || "supersecret",
@@ -117,6 +115,40 @@ module.exports = defineConfig({
         ],
       },
     },
+    {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/my-payment",
+            id: "manual-payment",
+            options: {
+              // provider options...
+              apiKey: process.env.MANUAL_PAYMENT_KEY,
+              merchantId: process.env.MANUAL_PAYMENT_MERCHANT_ID,
+              sandbox: process.env.MANUAL_PAYMENT_SANDBOX === "true",
+            },
+          },
+        ],
+      },
+    },
+    {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/resend",
+            id: "resend",
+            options: {
+              channels: ["email"],
+              api_key: process.env.RESEND_API_KEY,
+              from: process.env.RESEND_FROM_EMAIL,
+            },
+          },
+        ],
+      },
+    },
+
     {
       resolve: "./src/modules/receipt",
     },
