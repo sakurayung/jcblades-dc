@@ -10,7 +10,6 @@ const createPaymentCollectionStep = createStep(
   "create-payment-collection",
   async ({}, { container }) => {
     const paymentModuleService = container.resolve(Modules.PAYMENT);
-
     const paymentCollection =
       await paymentModuleService.createPaymentCollections({
         currency_code: "php",
@@ -19,13 +18,13 @@ const createPaymentCollectionStep = createStep(
 
     return new StepResponse({ paymentCollection }, paymentCollection.id);
   },
-  async (paymentCollectonId, { container }) => {
-    if (!paymentCollectonId) {
+  async (paymentCollectionId, { container }) => {
+    if (!paymentCollectionId) {
       return;
     }
     const paymentModuleService = container.resolve(Modules.PAYMENT);
 
-    await paymentModuleService.deletePaymentCollections([paymentCollectonId]);
+    await paymentModuleService.deletePaymentCollections([paymentCollectionId]);
   }
 );
 

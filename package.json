@@ -32,6 +32,7 @@
     "@mikro-orm/migrations": "6.4.3",
     "@mikro-orm/postgresql": "6.4.3",
     "@paypal/paypal-server-sdk": "^1.0.0",
+    "@react-email/components": "^0.0.38",
     "@supabase/supabase-js": "^2.49.4",
     "@tanstack/react-query": "^5.74.0",
     "awilix": "^8.0.1",

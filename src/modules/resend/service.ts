@@ -9,6 +9,7 @@ import {
 } from "@medusajs/framework/types";
 import { Resend, CreateEmailOptions } from "resend";
 import { orderPlacedEmail } from "./emails/order-placed";
+import { customerConfirmationEmail } from "./emails/customer-confirmation";
 
 type ResendOptions = {
   api_key: string;
@@ -35,6 +36,7 @@ enum Templates {
 const templates: { [key in Templates]?: (props: unknown) => React.ReactNode } =
   {
     [Templates.ORDER_PLACED]: orderPlacedEmail,
+    [Templates.EMAIL_CONFIRM]: customerConfirmationEmail,
   };
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {
@@ -90,7 +92,7 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
       case Templates.ORDER_PLACED:
         return "Order Confirmation";
       case Templates.EMAIL_CONFIRM:
-        return "Email Confirmation";
+        return "Please Confirm Your Email Address";
       default:
         return "New Email (Placeholder)";
     }
