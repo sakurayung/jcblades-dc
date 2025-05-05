@@ -322,7 +322,9 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
       if (input.data && input.data.id) {
         externalId = input.data.id;
         console.log("Found ID in input.data.id:", externalId);
+        //@ts-ignore
       } else if (input.id) {
+        //@ts-ignore
         externalId = input.id;
         console.log("Found ID in input.id:", externalId);
       }
@@ -505,8 +507,8 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
           [PaypalOrderStatus.COMPLETED]: { action: "captured" },
           [PaypalOrderStatus.VOIDED]: { action: "canceled" },
         };
-      //@ts-ignore
-      return (
+        return (
+        //@ts-ignore
         eventTypeToAction[data.event_type as PaypalOrderStatus] || {
           action: "pending",
         }
