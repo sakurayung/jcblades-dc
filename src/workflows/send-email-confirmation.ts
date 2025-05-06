@@ -2,11 +2,8 @@ import {
   createWorkflow,
   WorkflowResponse,
 } from "@medusajs/framework/workflows-sdk";
-import { useQueryGraphStep } from "@medusajs/medusa/core-flows";
-import { sendNotificationStep } from "./steps/send-notification";
 import { Modules } from "@medusajs/framework/utils";
 import { createStep, StepResponse } from "@medusajs/workflows-sdk";
-import { transform } from "lodash";
 import { generateVerificationToken } from "./steps/generateVerificationToken";
 import { ICustomerModuleService, INotificationModuleService } from "@medusajs/framework/types";
 

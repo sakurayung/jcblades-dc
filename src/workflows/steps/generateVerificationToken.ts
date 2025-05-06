@@ -15,6 +15,7 @@ export const generateVerificationToken = createStep(
       { id: customerId },
       {
         metadata: {
+          email_verified: "false",
           verification_token: token,
           token_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
