@@ -1,32 +1,44 @@
-import { Text, Container, Heading, Html, Button, Section } from "@react-email/components"
+import { CustomerDTO } from "@medusajs/framework/types";
+import { Text, Container, Heading, Html, Button, Section, Tailwind } from "@react-email/components"
+import { first } from "lodash";
 
 type CustomerConfirmationEmailProps = {
-  customer: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-  token: string;
-  url: string;
+  customer: CustomerDTO
 }
 
-function CustomerConfirmationEmailComponent({ customer, token, url }: CustomerConfirmationEmailProps) {
-  const confirmationUrl = `${url}/confirm?token=${token}&email=${customer.email}`;
+
+function CustomerConfirmationEmailComponent({ customer }: CustomerConfirmationEmailProps) {
+  const backendUrl = process.env.BACKEND_URL
+
+  const confirmationUrl = `${backendUrl}/verify-email?token=${customer.metadata?.verification_token}&email=${customer.email}`
   
   return (
-    <Html>
-      <Heading>Welcome to our store!</Heading>
+    <Tailwind>
+    <Html className="font-sans bg-gray-100">
+      <Heading className="flex justify-center text-3xl">Welcome to JC Blades!</Heading>
       <Container>
         <Section>
           <Text>Hi {customer.first_name},</Text>
           <Text>Thank you for creating an account with us. Please confirm your email address by clicking the button below:</Text>
-          <Button href={confirmationUrl}>Confirm Email Address</Button>
+          <Button href={String(confirmationUrl || '#')}>Confirm Email Address</Button>
           <Text>If you did not create an account, please ignore this email.</Text>
         </Section>
       </Container>
     </Html>
+    </Tailwind>
   )
 }
+
+const mockData = {
+  customer: {
+    first_name: "John",
+    email: "testing12345@gmail.com",
+    verification_url: "https://"
+  }
+}
+
+//@ts-ignore
+export default () => <CustomerConfirmationEmailComponent {...mockData} />
 
 export const customerConfirmationEmail = (props: CustomerConfirmationEmailProps) => (
   <CustomerConfirmationEmailComponent {...props} />
