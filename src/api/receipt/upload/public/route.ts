@@ -8,11 +8,6 @@ import { container } from "@medusajs/framework";
 import { MedusaError, Modules } from "@medusajs/framework/utils";
 import { Link } from "@medusajs/framework/modules-sdk";
 
-/**
- * * Handles file uploads and processes them using the uploadFilesWorkflow.
- *  Instead of making a middleware, we are using the uploadFilesWorkflow directly in the route handler.
- * * This allows us to handle the file upload and processing in a single step.
- */
 const upload = multer();
 const uploadMiddleware = promisify(upload.array("files"));
 
@@ -33,17 +28,18 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       );
     }
 
-    /***HELL NAH BASE 64 YOU ALMOST CRASHED ME OUT... */
     // @ts-ignore
-    const files = req.files.map((file) => ({
+    const filesToProcess = req.files.map((file) => ({
       filename: file.originalname,
       mimeType: file.mimetype,
       content: file.buffer,
       access: "public",
     }));
 
-    const { result } = await uploadFilesWorkflow(req.scope).run({
-      input: { files },
+    const { result: workflowFileResults } = await uploadFilesWorkflow(
+      req.scope
+    ).run({
+      input: { files: filesToProcess }, 
     });
 
     const imageRepository: ReceiptPaymentImage =
@@ -51,42 +47,54 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const link = container.resolve("link") as Link;
 
     const savedFileRecords = [];
-    for (const fileResult of result) {
-      /***
-       * Save to files to the database by using the MedusaService
-       * that I created in the receipt module.
-       */
-      const correspondingFile = files.find((f) =>
-        fileResult.id.includes(f.filename)
+    if (Array.isArray(workflowFileResults)) {
+      for (const fileResult of workflowFileResults) {
+        const correspondingFile = filesToProcess.find((f) =>
+          fileResult.id.includes(f.filename)
+        );
+
+        const dbRecord = await imageRepository.createReceiptImages({
+          filename:
+            correspondingFile?.filename || fileResult.id.split("/").pop(),
+          mime_type: correspondingFile?.mimeType || "image/jpeg", 
+          url: fileResult.url, 
+          metadata: { cart_id: cartId },
+        });
+
+        await link.create({
+          receipt_image: {
+            receipt_image_id: dbRecord.id,
+          },
+          [Modules.CART]: {
+            cart_id: cartId,
+          },
+        });
+
+        savedFileRecords.push({
+          ...dbRecord, 
+        });
+      }
+    } else {
+      console.warn(
+        "uploadFilesWorkflow did not return an array in 'result'. Received:",
+        workflowFileResults
       );
-
-      const data = await imageRepository.createReceiptImages({
-        filename: correspondingFile?.filename || fileResult.id.split("/").pop(),
-        mime_type: correspondingFile?.mimeType || "image/jpeg",
-        url: fileResult.url,
-        metadata: { cart_id: cartId },
-      });
-
-      await link.create({
-        receipt_image: {
-          receipt_image_id: data.id,
-        },
-        [Modules.CART]: {
-          cart_id: cartId,
-        },
-      });
-
-      savedFileRecords.push({
-        ...data,
-        cart_id: cartId,
-      });
     }
+
+    // *** THIS IS THE KEY CHANGE ***
+    /**
+     * The response now includes the saved file records with their metadata. In the front-end
+     * it is labeled as "uploads" to be consistent with the previous implementation.
+     */
     res.status(200).json({
-      files: result,
-      receipt_images: savedFileRecords,
+      uploads: savedFileRecords, 
     });
   } catch (error) {
-    console.error("File upload error:", error);
-    res.status(500).json({ error: "File upload failed" });
+    console.error("Medusa File upload error:", error);
+    // Provide more detailed error to the client if appropriate and safe
+    const errorMessage =
+      error instanceof MedusaError ? error.message : "File upload failed";
+    const errorType = error instanceof MedusaError ? error.type : undefined;
+    res.status(500).json({ error: errorMessage, type: errorType });
   }
 }
