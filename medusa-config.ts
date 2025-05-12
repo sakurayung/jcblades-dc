@@ -4,13 +4,7 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
 module.exports = defineConfig({
   admin: {
-    vite: () => {
-      return {
-        server: {
-          allowedHosts: ["544b-143-44-184-28.ngrok-free.app"],
-        },
-      };
-    },
+    backendUrl: process.env.MEDUSA_BACKEND_URL
   },
   projectConfig: {
     workerMode: process.env.MEDUSA_WORKER_MODE as "shared" | "worker" | "server",
