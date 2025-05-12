@@ -13,7 +13,8 @@
     "medusa"
   ],
   "scripts": {
-    "build": "medusa build",
+    "build": "medusa build && yarn move:public",
+    "move:public":"cp -R .medusa/server/public ./public",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "start": "medusa start",
     "dev": "medusa develop",
