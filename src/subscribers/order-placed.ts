@@ -1,4 +1,4 @@
-import { SubscriberArgs, SubscriberConfig } from "@medusajs/framework";
+import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework";
 import { sendOrderConfirmationWorkflow } from "../workflows/send-order-confirmation";
 
 export default async function orderPlacedHandler({
@@ -11,5 +11,5 @@ export default async function orderPlacedHandler({
 }
 
 export const config: SubscriberConfig = {
-  event: "order-placed",
+  event: "order.placed",
 };
