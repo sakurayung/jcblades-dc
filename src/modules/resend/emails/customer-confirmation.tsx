@@ -17,7 +17,7 @@ function CustomerConfirmationEmailComponent({ customer }: CustomerConfirmationEm
     <Html className="font-sans bg-gray-100">
       <Heading className="flex justify-center text-center text-3xl">Welcome to JC Blades!</Heading>
       <Container>
-        <Section>
+        <Section className="flex justify-center items-center flex-col p-6 bg-white rounded-lg shadow-md">
           <Text>Hi {customer.first_name},</Text>
           <Text>Thank you for creating an account with us. Please confirm your email address by clicking the button below:</Text>
           <Button href={String(confirmationUrl || '#')}>Confirm Email Address</Button>
