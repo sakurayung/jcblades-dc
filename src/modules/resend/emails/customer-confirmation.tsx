@@ -15,7 +15,7 @@ function CustomerConfirmationEmailComponent({ customer }: CustomerConfirmationEm
   return (
     <Tailwind>
     <Html className="font-sans bg-gray-100">
-      <Heading className="flex justify-center text-3xl">Welcome to JC Blades!</Heading>
+      <Heading className="flex justify-center text-center text-3xl">Welcome to JC Blades!</Heading>
       <Container>
         <Section>
           <Text>Hi {customer.first_name},</Text>
