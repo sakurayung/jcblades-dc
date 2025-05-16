@@ -256,7 +256,7 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
     const refundAmount = input.amount;
 
     const { purchase_units } = paymentData as {
-      purchase_units: PurchaseUnits;
+      purchase_units?: PurchaseUnits;
     };
 
     try {
