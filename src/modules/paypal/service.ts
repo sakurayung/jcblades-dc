@@ -157,8 +157,8 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
       /**
        * Pass an object with the id property instead of just the id string
        */
-      //@ts-ignore
       const order = (await this.retrievePayment({
+        //@ts-ignore
         id: input.data.id,
       })) as PaypalOrder;
       return {
