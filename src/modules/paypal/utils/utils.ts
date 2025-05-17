@@ -1,8 +1,9 @@
 import { zeroDecimalCurrencies } from "medusa-core-utils";
 
 export function roundToTwo(num: number, currency: string): string {
-  if (zeroDecimalCurrencies.includes(currency.toLowerCase())) {
-    return `${num}`
+  if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
+    return Math.round(num).toString();
+  } else {
+    return num.toFixed(2);
   }
-  return num.toFixed(2)
 }

@@ -119,11 +119,7 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
             custom_id: context?.idempotency_key.toString(),
             amount: {
               currency_code: currency_code.toUpperCase(),
-              value: roundToTwo(
-                //@ts-ignore
-                humanizeAmount(amount, currency_code),
-                currency_code
-              ),
+              value: roundToTwo(Number(amount), currency_code),
             },
           },
         ],
@@ -162,7 +158,9 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
        * Pass an object with the id property instead of just the id string
        */
       //@ts-ignore
-      const order = (await this.retrievePayment({ id: input.data.id })) as PaypalOrder;
+      const order = (await this.retrievePayment({
+        id: input.data.id,
+      })) as PaypalOrder;
       return {
         data: order as unknown as Record<string, unknown>,
         status: stat.status,
@@ -251,46 +249,46 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
    * @param RefundPaymentInput
    */
 
-  async refundPayment(input: RefundPaymentInput): Promise<RefundPaymentOutput> {
-    const paymentData = input.data || {};
-    const refundAmount = input.amount;
+  async refundPayment({amount, data, context }: RefundPaymentInput): Promise<RefundPaymentOutput> {
+  let paymentData = data || {};
+  let refundAmount = amount;
 
-    const { purchase_units } = paymentData as {
-      purchase_units?: PurchaseUnits;
-    };
+  const { purchase_units } = paymentData as {
+    purchase_units: PurchaseUnits;
+  };
 
-    try {
-      const purchaseUnit = purchase_units[0];
-      const payments = purchaseUnit.payments;
-      const isAlreadyCaptured = purchase_units.some(
-        (pu) => pu.payments.captures?.length
+  try {
+    const purchaseUnit = paymentData?.purchase_units[0];
+    const payments = purchaseUnit?.payments?.captures?.[0];
+    const isAlreadyCaptured = purchase_units.some(
+      (pu) => pu.payments.captures?.length
+    );
+
+    if (!isAlreadyCaptured) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        `Payment is not captured yet`
       );
-
-      if (!isAlreadyCaptured) {
-        throw new MedusaError(
-          MedusaError.Types.INVALID_DATA,
-          `Payment is not captured yet`
-        );
-      }
-
-      const paymentId = payments.captures[0].id;
-      const currencyCode = purchaseUnit.amount.currency_code;
-
-      await this.paypal_.refundPayment(paymentId, {
-        amount: {
-          currency_code: currencyCode,
-          value: roundToTwo(
-            humanizeAmount(Number(refundAmount), currencyCode),
-            currencyCode
-          ),
-        },
-      });
-
-      return await this.retrievePayment(paymentData);
-    } catch (e) {
-      return this.buildError("An error occured in refunding payment", e);
     }
+
+    const paymentId = payments.captures[0].id;
+    const currencyCode = purchaseUnit.amount.currency_code;
+
+    await this.paypal_.refundPayment(paymentId, {
+      amount: {
+        currency_code: currencyCode,
+        value: roundToTwo(
+          Number(refundAmount),
+          currencyCode
+        ),
+      },
+    });
+
+    return await this.retrievePayment(paymentData);
+  } catch (e) {
+    return this.buildError("An error occurred in refunding payment", e);
   }
+}
 
   /**
    * Retrieves a payment by ID
@@ -489,7 +487,7 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
     try {
       await this.verifyWebhook(payload);
       const { data } = payload;
-      
+
       this.logger_?.error(`PayPal webhook received: ${data.message}`);
 
       if (!data?.event_type) {
@@ -507,7 +505,7 @@ class PayPalPaymentProviderService extends AbstractPaymentProvider<PaypalOptions
           [PaypalOrderStatus.COMPLETED]: { action: "captured" },
           [PaypalOrderStatus.VOIDED]: { action: "canceled" },
         };
-        return (
+      return (
         //@ts-ignore
         eventTypeToAction[data.event_type as PaypalOrderStatus] || {
           action: "pending",
