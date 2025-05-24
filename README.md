@@ -11,9 +11,10 @@
   Medusa
 </h1>
 
-MedusaJS E-Commerce Project: JC Blades
-Team Project Overview
-JC Blades is a collaborative e-commerce platform developed as a team project for the Software Engineering 2 course. Our team built a complete e-commerce solution using modern technologies and a microservices architecture.
+<h1 align="center"> JC Blades: DTC E-Commerce System </h1>
+
+#### Team Project Overview
+#### JC Blades is a collaborative e-commerce platform developed as a team project for the Software Engineering 2 course. Our team built a complete e-commerce solution using modern technologies and a microservices architecture.
 
 
 > [!NOTE]
@@ -22,25 +23,26 @@ JC Blades is a collaborative e-commerce platform developed as a team project for
 ### Project Architecture
 
 ## Frontend
-Framework: Next.js with TypeScript
-Styling: Tailwind CSS for responsive design
-State Management: React Context API and custom hooks
-API Integration: Axios for REST API communication
+#### Framework: Next.js with TypeScript
+#### Styling: Tailwind CSS for responsive design
+#### State Management: React Context API and custom hooks
+#### API Integration: Axios for REST API communication
 
 ## Backend
-Core: MedusaJS headless commerce engine
-API Layer: Express.js REST endpoints
-Authentication: JWT with custom middleware
-File Storage: Supabase S3 for product images and assets
-Payment Processing: PayPal API integration
-Document Generation: PDF receipt generation with custom templating
-Database & Infrastructure
-Database: PostgreSQL for persistent storage
-Caching: Redis for performance optimization
-Deployment: Docker containers with CI/CD pipeline
-Version Control: Git with feature branch workflow
+#### Core: MedusaJS headless commerce engine
+#### API Layer: Express.js REST endpoints
+#### Authentication: JWT with custom middleware
+#### File Storage: Supabase S3 for product images and assets
+#### Payment Processing: PayPal API integration
+#### Document Generation: PDF receipt generation with custom templating
 
-This project demonstrates our team's ability to collaborate on a production-ready e-commerce solution using modern cloud technologies and development practices.
+## Database & Infrastructure
+#### Database: PostgreSQL for persistent storage
+#### Caching: Redis for performance optimization
+#### Deployment: Docker containers with CI/CD pipeline
+#### Version Control: Git with feature branch workflow
+
+## This project demonstrates our team's ability to collaborate on a production-ready e-commerce solution using modern cloud technologies and development practices.
 
 
 ## Getting Started
