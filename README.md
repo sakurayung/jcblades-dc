@@ -11,60 +11,38 @@
   Medusa
 </h1>
 
-<h4 align="center">
-  <a href="https://docs.medusajs.com">Documentation</a> |
-  <a href="https://www.medusajs.com">Website</a>
-</h4>
+MedusaJS E-Commerce Project: JC Blades
+Team Project Overview
+JC Blades is a collaborative e-commerce platform developed as a team project for the Software Engineering 2 course. Our team built a complete e-commerce solution using modern technologies and a microservices architecture.
 
-<p align="center">
-  Building blocks for digital commerce
-</p>
-<p align="center">
-  <a href="https://github.com/medusajs/medusa/blob/master/CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt="PRs welcome!" />
-  </a>
-    <a href="https://www.producthunt.com/posts/medusa"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Day-%23DA552E" alt="Product Hunt"></a>
-  <a href="https://discord.gg/xpCwq3Kfn8">
-    <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=medusajs">
-    <img src="https://img.shields.io/twitter/follow/medusajs.svg?label=Follow%20@medusajs" alt="Follow @medusajs" />
-  </a>
-</p>
 
-## Compatibility
+> [!NOTE]
+> This project was developed solely for educational purposes as part of a Software Engineering 2 course. It is not intended for commercial use or distribution.
 
-This starter is compatible with versions >= 1.8.0 of `@medusajs/medusa`. 
+### Project Architecture
+
+## Frontend
+Framework: Next.js with TypeScript
+Styling: Tailwind CSS for responsive design
+State Management: React Context API and custom hooks
+API Integration: Axios for REST API communication
+
+## Backend
+Core: MedusaJS headless commerce engine
+API Layer: Express.js REST endpoints
+Authentication: JWT with custom middleware
+File Storage: Supabase S3 for product images and assets
+Payment Processing: PayPal API integration
+Document Generation: PDF receipt generation with custom templating
+Database & Infrastructure
+Database: PostgreSQL for persistent storage
+Caching: Redis for performance optimization
+Deployment: Docker containers with CI/CD pipeline
+Version Control: Git with feature branch workflow
+
+This project demonstrates our team's ability to collaborate on a production-ready e-commerce solution using modern cloud technologies and development practices.
+
 
 ## Getting Started
 
-Visit the [Quickstart Guide](https://docs.medusajs.com/learn) to set up a server.
-
-Visit the [Docs](https://docs.medusajs.com/learn#get-started) to learn more about our system requirements.
-
-## What is Medusa
-
-Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
-
-Learn more about [Medusa’s architecture](https://docs.medusajs.com/learn/advanced-development/architecture/overview) and [commerce modules](https://docs.medusajs.com/learn/basics/commerce-modules) in the Docs.
-
-## Roadmap, Upgrades & Plugins
-
-You can view the planned, started and completed features in the [Roadmap discussion](https://github.com/medusajs/medusa/discussions/categories/roadmap).
-
-Follow the [Upgrade Guides](https://docs.medusajs.com/upgrade-guides/) to keep your Medusa project up-to-date.
-
-Check out all [available Medusa plugins](https://medusajs.com/plugins/).
-
-## Community & Contributions
-
-The community and core team are available in [GitHub Discussions](https://github.com/medusajs/medusa/discussions), where you can ask for support, discuss roadmap, and share ideas.
-
-Join our [Discord server](https://discord.com/invite/medusajs) to meet other community members.
-
-## Other channels
-
-- [GitHub Issues](https://github.com/medusajs/medusa/issues)
-- [Twitter](https://twitter.com/medusajs)
-- [LinkedIn](https://www.linkedin.com/company/medusajs)
-- [Medusa Blog](https://medusajs.com/blog/)
+Visit the [Documentation](https://docs.medusajs.com/learn) to set up a Medusa application.
